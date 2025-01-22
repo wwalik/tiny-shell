@@ -4,18 +4,22 @@
 
 #include "p_readline.h"
 
-#define BUFFER_SIZE 4
+#define BUFFER_DEFAULT_SIZE 16
+#define BUFFER_INCREMENT 8
 extern ssize_t p_readline(char** line_buf, size_t* lbuf_size)
 {
 	size_t lbuf_pos = 0;
 
 	// malloc an initial buffer for input
-	*lbuf_size = BUFFER_SIZE;
-	*line_buf = (char*) malloc(*lbuf_size);
-	if (*line_buf == NULL)
+	if (*line_buf == NULL || lbuf_size == 0) // lbuf_size cannot be negative
 	{
-		perror("could not allocate buffer\n");
-		exit(EXIT_FAILURE);
+		*lbuf_size = BUFFER_DEFAULT_SIZE;
+		*line_buf = (char*) malloc(*lbuf_size);
+		if (*line_buf == NULL)
+		{
+			perror("could not allocate buffer\n");
+			exit(EXIT_FAILURE); // TODO: handle the error
+		}
 	}
 
 	char c;
@@ -41,7 +45,7 @@ extern ssize_t p_readline(char** line_buf, size_t* lbuf_size)
 		// increase buffer size as needed
 		if (lbuf_pos >= *lbuf_size-2) // -1 for string terminator
 		{
-			*lbuf_size += BUFFER_SIZE;
+			*lbuf_size += BUFFER_INCREMENT;
 			char* new_lbuf = (char*) realloc(*line_buf, *lbuf_size);
 
 			if (new_lbuf == NULL)
@@ -49,13 +53,13 @@ extern ssize_t p_readline(char** line_buf, size_t* lbuf_size)
 				free(*line_buf);
 				*line_buf = NULL;
 				perror("could not reallocate buffer\n");
-				exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE); // TODO: Handle the error
 			}
 
 			*line_buf = new_lbuf;
 		}
-	} while (c > 0);
+	} while (c > 0); // get_char() doesn't return any error information other than EOF (-1) so this is pointless ferror() should be called instead
 
-	// return the error
+	// return the "error"
 	return c;
 }

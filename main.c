@@ -7,8 +7,8 @@
 int
 main()
 {
+	size_t lbuf_size;
 	char* lbuf;
-	size_t lbuf_size = 0;
 	ssize_t len;
 
 	len = p_readline(&lbuf, &lbuf_size);
