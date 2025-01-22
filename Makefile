@@ -3,7 +3,7 @@ SRC_DIR := src
 BUILD_DIR := build
 
 CC := gcc
-CFLAGS := --std=c99 -iquote$(INCLUDE_DIR)
+CFLAGS := --std=c99 -iquote$(INCLUDE_DIR) -MMD
 DBGFLAGS := -ggdb
 
 .PHONY: clean all
@@ -26,10 +26,14 @@ tsh-debug: $(build_o_files)
 	$(CC) $(CFLAGS) $(DBGFLAGS) $^ -o $@
 
 # Build .o files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c #TODO: include .h dependencies
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
 clean:
 	rm tsh* 
 	rm $(BUILD_DIR)/*.o
+	rm $(BUILD_DIR)/*.d
+
+
+-include $(BUILD_DIR)/*.d
