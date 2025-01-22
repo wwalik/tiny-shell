@@ -21,7 +21,7 @@ tsh: $(build_o_files)
 	$(CC) $(CFLAGS) $^ -o $@
 
 debug: $(build_o_files)
-	$(CC) $(CFLAGS) $^ -o tsh-$@
+	$(CC) $(CFLAGS) $(DBGFLAGS) $^ -o tsh-$@
 
 # Build .o files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
