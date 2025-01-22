@@ -11,7 +11,7 @@ extern ssize_t p_readline(char** line_buf, size_t* lbuf_size)
 	size_t lbuf_pos = 0;
 
 	// malloc an initial buffer for input
-	if (*line_buf == NULL || lbuf_size == 0) // lbuf_size cannot be negative
+	if (*line_buf == NULL || *lbuf_size == 0) // lbuf_size cannot be negative
 	{
 		*lbuf_size = BUFFER_DEFAULT_SIZE;
 		*line_buf = (char*) malloc(*lbuf_size);
