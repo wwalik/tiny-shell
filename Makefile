@@ -7,11 +7,11 @@ INSTALL_DIR := /bin
 
 CC := gcc
 CFLAGS := --std=gnu99 -iquote$(INCLUDE_DIR) -MMD
-DBGFLAGS := -ggdb
+DBGFLAGS := -g
 
 .PHONY: all clean install remove 
 
-all: tsh tsh-debug
+all: tsh 
 
 clean:
 	rm tsh* 
@@ -39,13 +39,9 @@ build_o_files := $(subst $(SRC_DIR),$(BUILD_DIR),$(src_o_files))
 tsh: $(build_o_files)
 	$(CC) $(CFLAGS) $^ -o $@
 
-# Build a debuggable executable
-tsh-debug: $(build_o_files)
-	$(CC) $(CFLAGS) $(DBGFLAGS) $^ -o $@
-
 # Build .o files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) ${DBGFLAGS} -c $< -o $@
 
 
 # include dependencies magic
