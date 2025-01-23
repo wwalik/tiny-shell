@@ -4,6 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "p_readline.h"
 
@@ -22,13 +23,11 @@ handle_input(char **lbuf, int *status)
 	for(; token != NULL || tokens_len >= TOKEN_MAX-1; token = strtok(NULL, " \n\t")) // -1 for NULL byte of args
 		tokens[tokens_len++] = token;
 
-	tokens[tokens_len] = NULL; // tell execvp when to stop looking for arguments
+	tokens[tokens_len] = NULL; // tells execvp when to stop looking for arguments
 
 	// check if user has inputed something
 	if (tokens_len == 0)
-	{
 		return;
-	}
 
 	// HANDLE COMMAND
 	pid_t pid;
@@ -37,11 +36,12 @@ handle_input(char **lbuf, int *status)
 	if (pid == -1)
 	{
 		perror("could not fork\n");
-		return;
+		exit(EXIT_FAILURE);
 	} else if (pid == 0)
 	{
 		// CHILD
 		execvp(tokens[0], tokens);
+		
 		// did not execute
 		if (errno == ENOENT)
 		{
@@ -50,12 +50,41 @@ handle_input(char **lbuf, int *status)
 		{
 			fprintf(stderr, "could not execute program, errno:%d\n", errno);
 		}
+		
+		// Kill child
+		exit(EXIT_FAILURE);
 	} else
 	{
+		struct sigaction new_sa;
+		struct sigaction old_sa;
+		int sa_e;
+
+		// temporarily ignore CTRL+C while child is running
+		new_sa.sa_handler = SIG_IGN;
+		sigemptyset(&new_sa.sa_mask);
+		new_sa.sa_flags = 0;
+
+		sa_e = sigaction(SIGINT, &new_sa, &old_sa);
+		if (sa_e == -1)
+		{
+			perror("set sigaction error\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// PARENT
 		int wstatus;
 		waitpid(pid, &wstatus, 0); // stop until the program has executed
 
 		*status = WEXITSTATUS(wstatus);
+
+		// Reset sig handler
+		sa_e = sigaction(SIGINT, &old_sa, NULL);
+		if (sa_e == -1)
+		{
+			perror("reset sigaction error\n");
+			exit(EXIT_FAILURE);
+		}
+		
 	}
 	
 	return;
@@ -80,7 +109,7 @@ main()
 		len = p_readline(&lbuf, &lbuf_size);
 		if (len == EOF) // CTRL+D
 			break;
-		if (len == 1) // EMPTY LINE
+		if (len <= 1) // EMPTY LINE
 			continue;
 
 		// PROCESS INPUT

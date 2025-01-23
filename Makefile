@@ -3,7 +3,7 @@ SRC_DIR := src
 BUILD_DIR := build
 
 CC := gcc
-CFLAGS := --std=c99 -iquote$(INCLUDE_DIR) -MMD
+CFLAGS := --std=gnu99 -iquote$(INCLUDE_DIR) -MMD
 DBGFLAGS := -ggdb
 
 .PHONY: clean all
