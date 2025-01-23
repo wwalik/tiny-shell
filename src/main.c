@@ -6,7 +6,7 @@
 #include "p_readline.h"
 #include "execute.h"
 
-#define PROMPT "$ "
+#define get_prompt() "$ "
 
 // returns 0 if execution was successful, -1 otherwise
 #define TOKEN_MAX 512
@@ -45,7 +45,7 @@ main()
 		fflush(stdin);
 		fflush(stdout);
 		// DISPLAY PROMPT
-		printf("%s", PROMPT);
+		printf("%s", get_prompt());
 
 		// READ INPUT
 		len = p_readline(&lbuf, &lbuf_size);
