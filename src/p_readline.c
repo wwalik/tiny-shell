@@ -6,16 +6,16 @@
 
 #define BUFFER_DEFAULT_SIZE 16
 #define BUFFER_INCREMENT 8
-extern ssize_t p_readline(char** line_buf, size_t* lbuf_size)
+extern ssize_t p_readline(char** lbuf, size_t* lbuf_size)
 {
 	size_t lbuf_pos = 0;
 
 	// malloc an initial buffer for input
-	if (*line_buf == NULL || *lbuf_size == 0) // lbuf_size cannot be negative
+	if (*lbuf == NULL || *lbuf_size == 0) // lbuf_size cannot be negative
 	{
 		*lbuf_size = BUFFER_DEFAULT_SIZE;
-		*line_buf = (char*) malloc(*lbuf_size);
-		if (*line_buf == NULL)
+		*lbuf = (char*) malloc(*lbuf_size);
+		if (*lbuf == NULL)
 		{
 			perror("could not allocate buffer\n");
 			exit(EXIT_FAILURE); // TODO: handle the error
@@ -27,36 +27,36 @@ extern ssize_t p_readline(char** line_buf, size_t* lbuf_size)
 	{
 		c = getchar();
 
-		(*line_buf)[lbuf_pos] = c;
+		(*lbuf)[lbuf_pos] = c;
 		lbuf_pos++;
 
 		if (c == '\n') // handles enter
 		{
 			// Place string terminator
-			(*line_buf)[lbuf_pos] = '\0';
+			(*lbuf)[lbuf_pos] = '\0';
 			return lbuf_pos;
 		}
 		else if (c == EOF) // handles ctrl+d
 		{
 			printf("\n");
-			exit(EXIT_SUCCESS);
+			return EOF;
 		}
 
 		// increase buffer size as needed
 		if (lbuf_pos >= *lbuf_size-2) // -1 for string terminator
 		{
 			*lbuf_size += BUFFER_INCREMENT;
-			char* new_lbuf = (char*) realloc(*line_buf, *lbuf_size);
+			char* new_lbuf = (char*) realloc(*lbuf, *lbuf_size);
 
 			if (new_lbuf == NULL)
 			{
-				free(*line_buf);
-				*line_buf = NULL;
+				free(*lbuf);
+				*lbuf = NULL;
 				perror("could not reallocate buffer\n");
 				exit(EXIT_FAILURE); // TODO: Handle the error
 			}
 
-			*line_buf = new_lbuf;
+			*lbuf = new_lbuf;
 		}
 	} while (c > 0); // get_char() doesn't return any error information other than EOF (-1) so this is pointless ferror() should be called instead
 
