@@ -21,7 +21,6 @@ clean:
 install: tsh
 	cp /etc/shells scripts/shells.old
 	export TSH_INSTALL_DIR=${INSTALL_DIR}
-	echo "${TSH_INSTALL_DIR}"
 	sudo -E ./scripts/install.sh
 	unset TSH_INSTALL_DIR
 
