@@ -2,4 +2,4 @@ tsh*
 build/*.o
 build/*.d
 compile_commands.json
-.cache
+.cache/*
