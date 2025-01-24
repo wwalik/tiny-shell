@@ -48,7 +48,7 @@ main()
 		printf("%s", get_prompt());
 
 		// READ INPUT
-		len = p_readline(&lbuf, &lbuf_size);
+		len = p_readline(&lbuf, &lbuf_size, stdin);
 		if (len == EOF)
 			break;
 		if (len <= 1) // EMPTY LINE
