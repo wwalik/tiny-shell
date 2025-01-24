@@ -6,7 +6,7 @@
 
 #define BUFFER_DEFAULT_SIZE 16
 #define BUFFER_INCREMENT 8
-extern ssize_t p_readline(char** lbuf, size_t* lbuf_size)
+extern ssize_t p_readline(char** lbuf, size_t* lbuf_size, FILE *stream)
 {
 	size_t lbuf_pos = 0;
 
@@ -25,7 +25,7 @@ extern ssize_t p_readline(char** lbuf, size_t* lbuf_size)
 	char c;
 	do
 	{
-		c = getchar();
+		c = fgetc(stream);
 
 		(*lbuf)[lbuf_pos] = c;
 		lbuf_pos++;

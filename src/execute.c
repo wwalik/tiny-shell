@@ -31,6 +31,7 @@ execute(char **argv, int *status)
 			fprintf(stderr, "could not execute program, errno:%d\n", errno);
 		}
 
+		// kill child if it didnt execute
 		exit(EXIT_FAILURE);
 	} else
 	{
