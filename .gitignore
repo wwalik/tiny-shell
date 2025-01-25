@@ -1,5 +1,11 @@
+# build byproducts
 tsh*
 build/*.o
 build/*.d
+
+# clangd files
 compile_commands.json
 .cache/*
+
+# core files
+core
