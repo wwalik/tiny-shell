@@ -20,12 +20,14 @@ clean:
 
 install: tsh
 	cp /etc/shells scripts/shells.old
-	export TSH_INSTALL_DIR=${INSTALL_DIR}
+	# The following lines have to be executed in the same shell hence the ;\
+	export TSH_INSTALL_DIR=${INSTALL_DIR};\
 	sudo -E ./scripts/install.sh
-	unset TSH_INSTALL_DIR
 
 remove:
 	cp /etc/shells scripts/shells.old
+	# The following lines have to be executed in the same shell hence the ;\
+	export TSH_INSTALL_DIR=${INSTALL_DIR};\
 	sudo -E ./scripts/remove.sh
 
 

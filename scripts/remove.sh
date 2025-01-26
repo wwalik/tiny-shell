@@ -6,7 +6,7 @@ if [[ -z "${TSH_INSTALL_DIR}" ]]; then
 fi
 
 # remove executable
-sudo rm "${TSH_INSTALL_DIR}/tsh"
+rm "${TSH_INSTALL_DIR}/tsh"
 
 # remove from valid shells
-sudo sed -i "/${INSTALL_DIR_PATH}\/tsh/d" /etc/shells
+sed -i "/${INSTALL_DIR_PATH}\/tsh/d" /etc/shells
