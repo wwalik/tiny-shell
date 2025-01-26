@@ -6,9 +6,51 @@
 #include "p_readline.h"
 #include "execute.h"
 
-#define get_prompt() "$ "
+// returns a malloc'd address of the prompt string
+#define PROMPT_BUFFER_SIZE 256
+#define DEFAULT_PROMPT "$ "
+char*
+get_prompt()
+{
+	static char *prompt_buffer = NULL;
+	static size_t pbuf_size = PROMPT_BUFFER_SIZE;
 
-// returns 0 if execution was successful, -1 otherwise
+	// if prompt_buffer was never initialized
+	// this is obviously inefficient i think i shouldve made the buffer a global struct or smth like that?
+	if (prompt_buffer == NULL)
+	{
+		prompt_buffer = malloc(pbuf_size);
+		if (prompt_buffer == NULL)
+			exit(EXIT_FAILURE);
+	}
+
+	// get env variables
+	char *user,
+		 *name,
+		 *pwd;
+
+	user = getenv("USER");
+	name = getenv("NAME");
+	pwd = getenv("PWD");
+
+	// replace getenv("HOME") by ~ in pwd
+	// i will need to implement a custom function
+	
+	if (user == NULL || name == NULL || pwd == NULL)
+	{
+		perror("could not get env variables for prompt: defaulting to '$ ' prompt\n");
+		strcpy(prompt_buffer, DEFAULT_PROMPT);	
+	}
+
+	// reset prompt string
+	memset(prompt_buffer, 0, strlen(prompt_buffer));
+	
+	sprintf(prompt_buffer, "%s@%s:%s$ ", user, name, pwd);
+
+
+	return prompt_buffer;
+}
+
 #define TOKEN_MAX 512
 void
 handle_input(char **lbuf, int *status)
@@ -44,8 +86,17 @@ main()
 	{
 		fflush(stdin);
 		fflush(stdout);
+		
 		// DISPLAY PROMPT
-		printf("%s", get_prompt());
+		char *prompt_str;
+		prompt_str = get_prompt();
+
+		printf("%s", prompt_str);
+
+	 	free(prompt_str);
+	 	prompt_str = NULL;
+
+
 
 		// READ INPUT
 		len = p_readline(&lbuf, &lbuf_size, stdin);
@@ -58,9 +109,6 @@ main()
 		handle_input(&lbuf, &status);
 		printf("res: %d\n", status);
 	}
-
-
-	//	printf("allocated a buffer of size %ld and read %ld characters: %s", lbuf_size, len, lbuf);
 
 	free(lbuf);
 	lbuf = NULL;
