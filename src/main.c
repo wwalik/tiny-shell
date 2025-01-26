@@ -30,6 +30,7 @@ handle_input(char **lbuf, int *status)
 	int res = execute(tokens, status);
 }
 
+
 int
 main()
 {
@@ -48,9 +49,6 @@ main()
 		prompt_str = get_prompt();
 
 		printf("%s", prompt_str);
-
-	 	free(prompt_str);
-	 	prompt_str = NULL;
 
 
 
