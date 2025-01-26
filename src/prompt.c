@@ -4,7 +4,7 @@
 
 #include "prompt.h"
 
-extern char*
+extern const char*
 get_prompt()
 {
 	static char *prompt_buffer = NULL;
@@ -22,26 +22,32 @@ get_prompt()
 	// get env variables
 	char *user,
 		 *name,
-		 *pwd;
+		 *pwd,
+		 *home;
 
 	user = getenv("USER");
 	name = getenv("NAME");
 	pwd = getenv("PWD");
+	home = getenv("HOME");
 
-	// replace getenv("HOME") by ~ in pwd
-	// i will need to implement a custom function
-	
-	if (user == NULL || name == NULL || pwd == NULL)
+	if (user == NULL || name == NULL || pwd == NULL || home == NULL)
 	{
 		perror("could not get env variables for prompt: defaulting to '$ ' prompt\n");
 		strcpy(prompt_buffer, DEFAULT_PROMPT);	
 	}
 
-	// reset prompt string
-	memset(prompt_buffer, 0, strlen(prompt_buffer));
-	
+	// replace getenv("HOME") by ~ in pwd
+	// i will need to implement a custom function
+	// this assumes the home directory is similar to /home/username/
+	char *pwdbuf_home_ptr = strstr(pwd, home);
+
+	pwd = malloc(sizeof(pwd)+1);
+	strcpy(pwd, "~");
+	strcat(pwd, pwdbuf_home_ptr + strlen(home));
+
+
 	sprintf(prompt_buffer, "%s@%s:%s$ ", user, name, pwd);
 
-
+	free(pwd);
 	return prompt_buffer;
 }
