@@ -27,7 +27,19 @@ handle_input(char **lbuf, int *status)
 		return;
 
 	// handle input
-	int res = execute(tokens, status);
+	if (strcmp(tokens[0], "cd") == 0)
+	{
+		if (tokens_len == 2)
+		{
+			int res = chdir(tokens[1]);
+			printf("cd res: %d\n", res);
+		}
+		else
+			printf("cd requires at least 1 argument\n");
+	} else
+	{
+		int res = execute(tokens, status);
+	}
 }
 
 
