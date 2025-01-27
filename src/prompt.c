@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "prompt.h"
 
@@ -22,32 +24,56 @@ get_prompt()
 	// get env variables
 	char *user,
 		 *name,
-		 *pwd,
+		 *cwd,
 		 *home;
 
 	user = getenv("USER");
 	name = getenv("NAME");
-	pwd = getenv("PWD");
 	home = getenv("HOME");
 
-	if (user == NULL || name == NULL || pwd == NULL || home == NULL)
+	if (user == NULL || name == NULL || home == NULL)
 	{
 		perror("could not get env variables for prompt: defaulting to '$ ' prompt\n");
 		strcpy(prompt_buffer, DEFAULT_PROMPT);	
 	}
 
+	// get cwd
+	size_t pwdbuf_size = 64;
+	cwd = malloc(pwdbuf_size);
+	while(1)
+	{
+		char *res = getcwd(cwd, pwdbuf_size);
+		if( res == NULL)
+		{
+			if (errno == ERANGE)
+			{
+				// the buffer is too small
+				pwdbuf_size += 64;
+				cwd = realloc(cwd, pwdbuf_size);
+				continue;
+			}
+			// other err
+			perror("could not allocate buffer for pwd\n");
+			exit(EXIT_FAILURE);
+		} else // successfully allocated buffer
+			break;
+	} 
+
+
 	// replace getenv("HOME") by ~ in pwd
-	// i will need to implement a custom function
-	// this assumes the home directory is similar to /home/username/
-	char *pwdbuf_home_ptr = strstr(pwd, home);
+	char *cwd_home_ptr = strstr(cwd, home);
 
-	pwd = malloc(sizeof(pwd)+1);
-	strcpy(pwd, "~");
-	strcat(pwd, pwdbuf_home_ptr + strlen(home));
+	if (cwd_home_ptr-cwd == 0)
+	{
+		cwd = malloc(sizeof(cwd));
+		strcpy(cwd, "~");
+		strcat(cwd, cwd_home_ptr + strlen(home));
 
+		free(cwd_home_ptr);
+	}
 
-	sprintf(prompt_buffer, "%s@%s:%s$ ", user, name, pwd);
+	sprintf(prompt_buffer, "%s@%s:%s$ ", user, name, cwd);
 
-	free(pwd);
+	free(cwd);
 	return prompt_buffer;
 }
