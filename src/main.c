@@ -36,7 +36,6 @@ main()
 
 		// PROCESS INPUT
 		handle_input(&line_buffer, &status);
-		printf("res: %d\n", status);
 	}
 
 	free(line_buffer);

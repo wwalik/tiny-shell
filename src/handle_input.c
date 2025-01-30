@@ -21,7 +21,7 @@ p_readline(char** lbuf, size_t* lbuf_size, FILE *stream)
 		*lbuf = (char*) malloc(*lbuf_size);
 		if (*lbuf == NULL)
 		{
-			perror("could not allocate buffer\n");
+			perror("p_readline():");
 			exit(EXIT_FAILURE); // TODO: handle the error
 		}
 	}
@@ -50,14 +50,12 @@ p_readline(char** lbuf, size_t* lbuf_size, FILE *stream)
 		if (lbuf_pos >= *lbuf_size-2) // -1 for string terminator
 		{
 			*lbuf_size += BUFFER_INCREMENT;
-			char* new_lbuf = (char*) realloc(*lbuf, *lbuf_size);
+			char* new_lbuf = realloc(*lbuf, *lbuf_size);
 
 			if (new_lbuf == NULL)
 			{
-				free(*lbuf);
-				*lbuf = NULL;
-				perror("could not reallocate buffer\n");
-				exit(EXIT_FAILURE); // TODO: Handle the error
+				perror("p_readline():");
+				exit(EXIT_FAILURE); 
 			}
 
 			*lbuf = new_lbuf;
@@ -69,36 +67,70 @@ p_readline(char** lbuf, size_t* lbuf_size, FILE *stream)
 }
 
 static void
-translate_input(char **tokens, size_t tokens_len)
+translate_input(char **tokens, size_t tokens_len, int last_status)
 {
 	// look for ~ and $
 	for (size_t i = 0; i < tokens_len; i++)
 	{
+		size_t token_len = strlen(tokens[i]);
 		char *tilde_ptr = strchr(tokens[i], '~');
 		char *dollar_ptr = strchr(tokens[i], '$');
 
 		if (tilde_ptr != NULL)
 		{
+			// TODO: DO NOT USE ENV VARIABLE GET IT FROM /etc/passwd or smth
 			char *home = getenv("HOME");
 			if (home == NULL)
 			{
 				printf("could not find home directory\n");
-				return;
+				break;
 			}
 			
-			char *new_buf = malloc(strlen(tokens[i])+strlen(home));
-			new_buf = strncpy(new_buf, tokens[i], tilde_ptr-tokens[i]);
+			token_len += strlen(home);
+			char *new_buf = malloc(token_len+1); // the deletion of ~ accounts for the NULL byte
+			if (new_buf == NULL)
+			{
+				perror("translate_input():");
+				exit(EXIT_FAILURE);
+			}
+			*new_buf = 0;
+			strncpy(new_buf, tokens[i], tilde_ptr-tokens[i]);
 			strcat(new_buf, home);
 			strcat(new_buf, tilde_ptr+1);
 
+			if (dollar_ptr != NULL) dollar_ptr = strchr(new_buf, '$');
+			free(tokens[i]);
 			tokens[i] = new_buf;
 		}
 
 		if (dollar_ptr != NULL)
 		{
-			printf("found a $\n");
-			printf("env variables substitution isnt yet implemented\n");
+			// dollar_ptr is last character
+			if (dollar_ptr - tokens[i] >= token_len)
+				break;
+
+			token_len += 20; // arbitrary
+			char *new_buf = malloc(token_len);
+			if (new_buf == NULL)
+			{
+				perror("translate_input():");
+				exit(EXIT_FAILURE);
+			}
+			*new_buf = 0;
+			strncpy(new_buf, tokens[i], dollar_ptr-tokens[i]);
+			if (strcmp(dollar_ptr+1, "?") == 0)
+			{
+				sprintf(new_buf+(dollar_ptr-tokens[i]), "%d", last_status);
+			} else if(strcmp(dollar_ptr+1, "$") == 0)
+			{
+				sprintf(new_buf+(dollar_ptr-tokens[i]), "%d", getpid());
+			}
+			strcat(new_buf, dollar_ptr+2);
+
+			free(tokens[i]);
+			tokens[i] = new_buf;
 		}
+
 	}
 }
 
@@ -114,13 +146,26 @@ handle_input(char **lbuf, int *status)
 			token != NULL || tokens_len >= TOKEN_MAX-1; // -1 for NULL byte of args
 			token = strtok(NULL, " \n\t")) 
 	{
-		tokens[tokens_len++] = token;
+		size_t token_len = strlen(token);
+		char *token_buf = malloc(token_len);
+		if(token_buf == NULL)
+		{
+			perror("handle_input():");
+			exit(EXIT_FAILURE);
+		}
+		strncpy(token_buf, token, token_len+1); // +1 for \0
+
+		tokens[tokens_len++] = token_buf;
 	}
 
 	tokens[tokens_len] = NULL; // tells execvp when to stop looking for arguments
 
-	translate_input(tokens, tokens_len);
-	// handle input
+	// translate ~ and $ characters
+	translate_input(tokens, tokens_len, *status);
+	
+	// CD COMMAND 
+	// CD COMMAND 
+	// CD COMMAND 
 	if (strcmp(tokens[0], "cd") == 0)
 	{
 		// cd
@@ -159,6 +204,12 @@ handle_input(char **lbuf, int *status)
 	} else
 	{
 		// any other command
+		// any other command
+		// any other command
 		int res = execute(tokens, status);
 	}
+
+
+	for(size_t i = 0; i < tokens_len; i++)
+		free(tokens[i]);
 }

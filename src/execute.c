@@ -28,7 +28,7 @@ execute(char **argv, int *status)
 			printf("could not find file or directory\n");
 		} else
 		{
-			fprintf(stderr, "could not execute program, errno:%d\n", errno);
+			perror("");
 		}
 
 		// kill child if it didnt execute
