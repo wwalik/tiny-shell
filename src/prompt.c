@@ -33,8 +33,8 @@ get_prompt()
 
 	if (user == NULL || name == NULL || home == NULL)
 	{
-		perror("could not get env variables for prompt: defaulting to '$ ' prompt\n");
 		strcpy(prompt_buffer, DEFAULT_PROMPT);	
+		return prompt_buffer;
 	}
 
 	// get cwd
